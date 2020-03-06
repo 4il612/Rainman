@@ -1,9 +1,8 @@
-#Пофиксить зарядку энергии
-
 import pygame
 import sys
 import random
-# from object import Object
+from tkinter import messagebox, Tk
+
 
 
 obj_width = 50
@@ -12,21 +11,13 @@ obj_x = random.randint(10, 1000)
 obj_y = 0
 
 
-#рисование падающего объекта
-def drawObj():
-    global obj_height, obj_width, obj_x, obj_y
-    if obj_y <= 720-50-obj_height:
-        pygame.draw.rect(root,(255, 0, 0), (obj_x, obj_y, obj_width, obj_height))
-        obj_y += 10
-    else:
-        obj_y = 0-obj_height
+
 
 clock = pygame.time.Clock()
 
 pygame.init()
 root = pygame.display.set_mode((1280, 720))
-
-pygame.display.set_caption("")
+pygame.display.set_caption("Rainman")
 
 walk = [
     pygame.image.load('sprites/1.png'),
@@ -43,24 +34,44 @@ player_pos_x = 50
 player_pos_y = 670 - player_height
 speed = 3
 
+rain_count = 1
 
+class Rain:
+    def __init__(self):
+        self.x = random.randint(100, 1200)
+        self.y = -50
+        self.speed = speed
 
+    def move(self):
+        if self.y <= 620:
+            pygame.draw.rect(root,(255, 0, 0), (self.x, self.y, 50, 50))
+            self.y += 10
+        else:
+            self.y = 0-50
+            self.x = random.randint(100,1200)
+            global rain_count
+            rain_count += 1
+            createRain(rain_array)
 run = True
 
 anim_count = 0
+
+def createRain(array):
+    global rain_count
+    for i in range(rain_count):
+        array.append(Rain())
+
+def drawRain(array):
+    for rain in array:
+        rain.move()
 
 def draw():
     global anim_count
     
     root.fill((255,255,255))
     pygame.draw.rect(root, (0,110,180), (0, 720-50, 1300, 50))
+    drawRain(rain_array)
 
-    drawObj()
-    
-    # obj = Object(random.randint(10, 1000), 0, 10, 'sprites/object.png')
-
-    # pygame.blit(obj.sprt(), (obj.x(), obj.y()))
-    # obj.y_pos += obj.speed
 
     if anim_count +1 >= 20:
         anim_count = 0
@@ -74,7 +85,16 @@ def draw():
 
     pygame.display.update()
 
+
+rain_array = []
+createRain(rain_array)
 while run:
+    if len(rain_array) > 1000:
+        Tk().withdraw()
+        messagebox.showerror("SystemError", "Ошибка\nНе хватает ресурсов системы")
+        sys.exit()
+        
+    
     clock.tick(30)
 
     for event in pygame.event.get():
@@ -101,7 +121,10 @@ while run:
     else:
         going = False
         anim_count = 0
+    
+    
     draw()
+    
 
 
 
