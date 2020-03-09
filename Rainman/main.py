@@ -2,8 +2,8 @@ import pygame
 import sys
 import random
 from tkinter import messagebox, Tk
-
-
+import os
+from sys import platform
 
 obj_width = 50
 obj_height = 50
@@ -28,6 +28,8 @@ walk = [
 
 player_stand = pygame.image.load('sprites/1.png')
 
+kaplya = pygame.image.load('sprites/rain.png')
+
 player_width = 40
 player_height = 60
 player_pos_x = 50
@@ -37,14 +39,16 @@ speed = 3
 rain_count = 1
 
 class Rain:
+            self.y = 0-50
     def __init__(self):
-        self.x = random.randint(100, 1200)
-        self.y = -50
+        self.x = random.randint(0, 1280)
+        self.y = -random.randint(50, 720)
         self.speed = speed
 
     def move(self):
         if self.y <= 620:
-            pygame.draw.rect(root,(255, 0, 0), (self.x, self.y, 50, 50))
+            # pygame.draw.rect(root,(255, 0, 0), (self.x, self.y, 50, 50))
+            root.blit(kaplya, (self.x, self.y))
             self.y += 10
         else:
             self.y = 0-50
@@ -52,6 +56,11 @@ class Rain:
             global rain_count
             rain_count += 1
             createRain(rain_array)
+    def collision(self):
+        if self.y >= player_pos_y - 15 and abs(player_pos_x - self.x ) <= 5:
+            Tk().withdraw()
+            messagebox.showinfo("", "Тебя залил дождь.")            
+
 run = True
 
 anim_count = 0
@@ -64,6 +73,7 @@ def createRain(array):
 def drawRain(array):
     for rain in array:
         rain.move()
+        rain.collision()
 
 def draw():
     global anim_count
@@ -91,8 +101,8 @@ createRain(rain_array)
 while run:
     if len(rain_array) > 1000:
         Tk().withdraw()
-        messagebox.showerror("SystemError", "Ошибка\nНе хватает ресурсов системы")
-        sys.exit()
+        messagebox.showerror("SystemError", "Ошибка\nЧто-то пошло не так...")
+        break
         
     
     clock.tick(30)
@@ -128,3 +138,9 @@ while run:
 
 
 
+if platform == 'linux' or platform == 'linux2':
+    os.system('firefox pages/base.html')
+elif platform == 'win32':
+    os.system('start pages/base.html')
+else:
+    pass
