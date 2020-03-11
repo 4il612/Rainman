@@ -1,4 +1,5 @@
 import pygame
+from pygame import transform
 import random
 from sys import platform
 from os import system
@@ -6,6 +7,9 @@ from tkinter import messagebox, Tk
 
 
 pygame.init()
+
+
+scaling = False
 
 
 class Rainman(pygame.sprite.Sprite):
@@ -16,13 +20,24 @@ class Rainman(pygame.sprite.Sprite):
 		self.rect.x = 0
 		self.rect.y = 660
 		self.count = 1
+		self.idle = pygame.image.load("sprites/1.png").convert_alpha()
+
 
 	def moving(self):
 		self.count += 1
 		self.count = self.count % 4
 		self.image = pygame.image.load('sprites/{}.png'.format(self.count + 1)).convert_alpha()
 
-	def update(self, is_move):
+		
+	def update(self):
+		global scaling
+		if scaling:
+			self.image = pygame.transform.scale(self.image, (46, 120))
+			self.rect.y = 600
+		else:
+			self.image = pygame.image.load('sprites/{}.png'.format(self.count + 1)).convert_alpha()
+			self.rect.y = 660
+
 		if is_move:
 			if moving_right:
 				if sprint:
@@ -35,7 +50,12 @@ class Rainman(pygame.sprite.Sprite):
 				else:
 					self.rect.x -= 4
 		else:
-			self.image = pygame.image.load("sprites/1.png").convert_alpha()
+			if scaling:
+				self.scaled_idle = self.idle
+				self.image = pygame.transform.scale(self.scaled_idle, (43, 120))
+			else:
+				self.image = self.idle
+	
 
 class Raindrop(pygame.sprite.Sprite):
 	def __init__(self, group):
@@ -50,6 +70,10 @@ class Raindrop(pygame.sprite.Sprite):
 		self.rect.y += 10
 		if self.rect.y < 0:
 			self.kill
+
+
+ 
+
 
 size = width, height = 1280, 720
 screen = pygame.display.set_mode(size)
@@ -76,13 +100,19 @@ pygame.time.set_timer(rain, timer)
 
 is_move = False
 
+
 while True:
 	keys = pygame.key.get_pressed()
-	
+	if keys[pygame.K_a]:
+		scaling = True
+	if keys[pygame.K_b]:
+		scaling = False
+
 	if keys[pygame.K_ESCAPE]:
 		exit()
 	if keys[pygame.K_LSHIFT]:
 		sprint = True
+	
 	else:
 		sprint = False
 
@@ -96,6 +126,7 @@ while True:
 		is_move = False
 
 	for event in pygame.event.get():
+
 		if event.type == pygame.QUIT:
 			exit()
 
@@ -116,13 +147,14 @@ while True:
 	screen.fill((255, 255, 255))
 	
 	if not collision:
-		man.update(is_move)
+		man.update()
 		weather.update()
 	else:
 		Tk().withdraw()
 		messagebox.showerror("SystemError", "Ошибка\nЧто-то пошло не так...")
 		break
 	
+
 	screen.blit(man.image, man.rect)
 	weather.draw(screen)
 	pygame.display.update()
